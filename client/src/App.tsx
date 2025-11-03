@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import ChatMessage from "./components/ChatMessage";
 import ChatInput from "./components/ChatInput";
 import Header from "./components/Header";
+import { listChats, createChat, getChat, sendMessage, deleteChat } from "./api";
 
 interface Message {
   text: string;
@@ -15,90 +16,105 @@ interface Chat {
   messages: Message[];
 }
 
+interface ChatSummary {
+  id: string;
+  title: string;
+  updatedAt?: string;
+  lastMessage?: Message | null;
+}
+
 export default function App() {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshFlag, setRefreshFlag] = useState(0);
 
-  // Load chats from localStorage
+
+
+  // Load chat list
   useEffect(() => {
-    const saved = localStorage.getItem("chats");
-    if (saved) {
-      const parsed: Chat[] = JSON.parse(saved);
-      setChats(parsed);
-      if (parsed.length > 0) setActiveChatId(parsed[0].id);
+    (async () => {
+      try {
+        const res = await listChats(); // { chats: [...] }
+        setChats(res.chats.map((c: any) => ({
+          id: c.id,
+          title: c.title,
+          updatedAt: c.updatedAt,
+          lastMessage: c.lastMessage ? c.lastMessage : null,
+        })));
+        if (!activeChatId && res.chats.length > 0) {
+          setActiveChatId(res.chats[0].id);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [refreshFlag]); // re-fetch when refreshFlag changes
+
+
+
+  // Load active chat messages whenever activeChatId changes
+  useEffect(() => {
+    if (!activeChatId) { setActiveChat(null); return; }
+    (async () => {
+      try {
+        const res = await getChat(activeChatId); // { chat }
+        setActiveChat(res.chat);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [activeChatId]);
+
+
+  const handleNewChat = async () => {
+    try {
+      const res = await createChat(); // { chatId, title }
+      // Refresh chat list and select the new one
+      setRefreshFlag((f) => f + 1);
+      setActiveChatId(res.chatId);
+    } catch (err) {
+      console.error(err);
     }
-  }, []);
-
-  // Save chats whenever they change
-  useEffect(() => {
-    localStorage.setItem("chats", JSON.stringify(chats));
-  }, [chats]);
-
-  const activeChat = chats.find((c) => c.id === activeChatId);
-
-  const handleNewChat = () => {
-    const newChat: Chat = {
-      id: Date.now().toString(),
-      title: "New Chat",
-      messages: [],
-    };
-    setChats((prev) => [newChat, ...prev]);
-    setActiveChatId(newChat.id);
   };
 
-  const handleSend = async (text: string) => {
-    if (!activeChat) return;
-
-    const updatedChats = chats.map((chat) =>
-      chat.id === activeChatId
-        ? {
-            ...chat,
-            title:
-              chat.messages.length === 0
-                ? text.slice(0, 20) + "..."
-                : chat.title,
-            messages: [...chat.messages, { text, isUser: true }],
-          }
-        : chat
-    );
-    setChats(updatedChats);
-    setLoading(true);
-
+  const handleDeleteChat = async (id: string) => {
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: text }),
-      });
-
-      const data = await res.json();
-      const updatedWithReply = updatedChats.map((chat) =>
-        chat.id === activeChatId
-          ? {
-              ...chat,
-              messages: [
-                ...chat.messages,
-                { text: data.response, isUser: false },
-              ],
-            }
-          : chat
-      );
-      setChats(updatedWithReply);
+      await deleteChat(id);
+      setRefreshFlag((f) => f + 1);
+      if (id === activeChatId) setActiveChatId(null);
     } catch (err) {
-      console.log("Error:", err);
-      const updatedError = updatedChats.map((chat) =>
-        chat.id === activeChatId
+      console.error(err);
+    }
+  };
+
+
+
+    const handleSend = async (text: string) => {
+    if (!activeChatId) return;
+    setLoading(true);
+    try {
+      const res = await sendMessage(activeChatId, text); // { reply, chatId }
+      // refresh the active chat from server to get both messages
+      const refreshed = await getChat(activeChatId);
+      setActiveChat(refreshed.chat);
+      // refresh chat list so titles/lastMessage update
+      setRefreshFlag((f) => f + 1);
+    } catch (err) {
+      console.error(err);
+      // show local error message in UI
+      setActiveChat((prev) =>
+        prev
           ? {
-              ...chat,
+              ...prev,
               messages: [
-                ...chat.messages,
-                { text: "⚠️ Error connecting to server.", isUser: false },
+                ...prev.messages,
+                { text: "⚠️ Error sending message", isUser: false },
               ],
             }
-          : chat
+          : prev
       );
-      setChats(updatedError);
     } finally {
       setLoading(false);
     }
@@ -111,6 +127,7 @@ export default function App() {
         activeChatId={activeChatId}
         onSelectChat={setActiveChatId}
         onNewChat={handleNewChat}
+        onDeleteChat={handleDeleteChat}
       />
       <div className="flex flex-col flex-1 bg-[#343541]">
         <Header/>
@@ -118,11 +135,7 @@ export default function App() {
           {activeChat ? (
             <>
               {activeChat.messages.map((msg, idx) => (
-                <ChatMessage
-                  key={idx}
-                  message={msg.text}
-                  isUser={msg.isUser}
-                />
+                <ChatMessage key={idx} message={msg.text} isUser={msg.isUser} />
               ))}
               {loading && <ChatMessage message="Typing..." isUser={false} />}
             </>
