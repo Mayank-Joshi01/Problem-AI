@@ -24,10 +24,11 @@ export default function Sidebar({
 }: SidebarProps) {
   return (
     <div className="w-64 bg-[#202123] flex flex-col p-3">
+       <h1 className="text-lg font-bold text-white mb-[25px]"><img src="/Logo.png" alt="" width={30}/></h1>
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={onNewChat}
-          className="bg-[#343541] rounded-md py-2 px-3 hover:bg-[#3e3f4b] text-left text-white"
+          className="bg-[#343541] rounded-md py-2 px-3 hover:bg-[#3e3f4b] text-left text-white cursor-pointer"
         >
           + New Chat
         </button>
@@ -51,7 +52,7 @@ export default function Sidebar({
               </button>
               <button
                 onClick={() => onDeleteChat(chat.id)}
-                className="ml-2 text-sm text-red-400 hover:text-red-200"
+                className="ml-2 text-sm text-red-400 hover:text-red-200 cursor-pointer"
                 title="Delete chat"
               >
                 🗑
