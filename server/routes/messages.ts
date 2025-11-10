@@ -34,6 +34,7 @@ router.post("/:id/messages", async (req, res) => {
       }),
     }).then(res => res.json());
 
+    console.log("OpenAI response:", response);
     const reply = response.choices?.[0]?.message?.content ?? "Sorry, no response.";
 
     // Save assistant message
