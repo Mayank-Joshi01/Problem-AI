@@ -29,7 +29,7 @@ router.post("/:id/messages", async (req, res) => {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         model: "phi3:mini",
-        messages:promptMessages,
+        prompt:promptMessages,
         stream: false,
       }),
     }).then(res => res.json());
