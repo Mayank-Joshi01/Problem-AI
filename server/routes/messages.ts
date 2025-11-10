@@ -35,10 +35,10 @@ router.post("/:id/messages", async (req, res) => {
     }).then(res => res.json());
 
     console.log("OpenAI response:", response);
-    const reply = response.choices?.[0]?.message?.content ?? "Sorry, no response.";
+    // const reply = response.choices?.[0]?.message?.content ?? "Sorry, no response.";
 
     // Save assistant message
-    chat.messages.push({ text: reply, isUser: false, createdAt: new Date() });
+    chat.messages.push({ text: response, isUser: false, createdAt: new Date() });
 
     // Optionally update the chat title if it was "New Chat" and first user message exists
     if (!chat.title || chat.title === "New Chat") {
@@ -47,7 +47,7 @@ router.post("/:id/messages", async (req, res) => {
 
     await chat.save();
 
-    res.json({ reply, chatId: chat._id });
+    res.json({ response, chatId: chat._id });
   } catch (err) {
     console.error("Error in /messages:", err);
     res.status(500).json({ error: "Failed to send message" });
