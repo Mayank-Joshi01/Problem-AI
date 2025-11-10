@@ -22,15 +22,17 @@ router.post("/:id/messages", async (req, res) => {
     // Save user message
     chat.messages.push({ text, isUser: true, createdAt: new Date() });
     
-    const response = {
-      choices: [
-        {
-          message: {
-            content: "This is a simulated response from OpenAI.",
-          },
-        },
-      ],
-    };
+
+    const promptMessages = [{ role: "user", content: text }];
+    const response = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "phi3:mini",
+        messages:promptMessages,
+        stream: false,
+      }),
+    }).then(res => res.json());
 
     const reply = response.choices?.[0]?.message?.content ?? "Sorry, no response.";
 
