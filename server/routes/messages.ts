@@ -50,7 +50,7 @@ router.post("/:id/messages", async (req, res) => {
     res.json({ response, chatId: chat._id });
   } catch (err) {
     console.error("Error in /messages:", err);
-    res.status(500).json({ error: "Failed to send message" });
+    res.status(500).json({ error: err });
   }
 });
 
