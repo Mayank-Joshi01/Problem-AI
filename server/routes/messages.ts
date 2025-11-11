@@ -30,7 +30,7 @@ router.post("/:id/messages", async (req, res) => {
       body: JSON.stringify({
         model: "TinyLlama",
         messages: [
-  { role: "user", content: "who is elon musk?" }
+  { role: "user", content: text }
         ],
         stream: false,
       }),
