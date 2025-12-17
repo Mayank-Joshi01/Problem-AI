@@ -1,8 +1,8 @@
 // src/api.ts
 // const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
-//const API_BASE = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+const API_BASE = `${window.location.protocol}//${window.location.hostname}:5000/api`;
 
-const API_BASE = "http://localhost:5000/api";
+// const API_BASE = "http://localhost:5000/api";
 
 export async function listChats() {
   const res = await fetch(`${API_BASE}/chats`);
