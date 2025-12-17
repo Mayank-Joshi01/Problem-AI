@@ -28,15 +28,15 @@ export async function getChat(chatId: string) {
 /// IMORTANT MESSAGE FOR ME IN THE FUTURE: If any issue occur in future due to rerandering of components while streaming, consider using useRef instead 
 //                                         of useState for messageStream.
 export async function sendMessage(chatId: string, text: string,setLoading: (loading: boolean) => void,setMessageStream: (stream: string) => void) {
-  const res = await fetch(`${API_BASE}/chats/${chatId}/messages`, {
+  const resp = await fetch(`${API_BASE}/chats/${chatId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
   });
 
-    if (!res.body) return;
+    if (!resp.body) return;
 
-    const reader = res.body.pipeThrough(new TextDecoderStream('utf-8')).getReader();
+    const reader = resp.body.pipeThrough(new TextDecoderStream('utf-8')).getReader();
 
     let currentText = "";
     setLoading(true);
@@ -50,11 +50,11 @@ export async function sendMessage(chatId: string, text: string,setLoading: (load
         currentText += token;
         setMessageStream(currentText);}}    
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
     throw new Error(err.error || "Failed to send message");
   }
-  return res.json(); // { reply, chatId }
+  return ; 
 }
 
 
