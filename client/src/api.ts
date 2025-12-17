@@ -25,8 +25,9 @@ export async function getChat(chatId: string) {
   return res.json(); // { chat }
 }
 
-
-export async function sendMessage(chatId: string, text: string) {
+/// IMORTANT MESSAGE FOR ME IN THE FUTURE: If any issue occur in future due to rerandering of components while streaming, consider using useRef instead 
+//                                         of useState for messageStream.
+export async function sendMessage(chatId: string, text: string,setLoading: (loading: boolean) => void,setMessageStream: (stream: string) => void) {
   const res = await fetch(`${API_BASE}/chats/${chatId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -35,25 +36,19 @@ export async function sendMessage(chatId: string, text: string) {
 
     if (!res.body) return;
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
+    const reader = res.body.pipeThrough(new TextDecoderStream('utf-8')).getReader();
 
     let currentText = "";
-
+    setLoading(true);
      while (true) {
-      const { value, done } = await reader.read();
+      const{ done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-
-      const lines = chunk.split("\n").filter((line) => line.startsWith("data: "));
+      const lines = value.split("\n").filter((line) => line.startsWith("data: "));
       for (const line of lines) {
-        const token = line.replace("data: ", "").trim();
+        const token = line.replace("data: ", " ");
         if (token === "[DONE]") break;
-
-        currentText += token;}}
-
-
-        
+        currentText += token;
+        setMessageStream(currentText);}}    
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -61,8 +56,6 @@ export async function sendMessage(chatId: string, text: string) {
   }
   return res.json(); // { reply, chatId }
 }
-
-
 
 
 

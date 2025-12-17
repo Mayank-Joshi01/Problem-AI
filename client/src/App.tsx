@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "./components/Sidebar";
 import ChatMessage from "./components/ChatMessage";
 import ChatInput from "./components/ChatInput";
@@ -29,7 +29,8 @@ export default function App() {
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-
+  const [messageStream, setMessageStream] = useState<string>("Typing...");
+  // const messageStream = useRef<string>("Typing...");
 
 
   // Load chat list
@@ -94,8 +95,11 @@ export default function App() {
     const handleSend = async (text: string) => {
     if (!activeChatId) return;
     setLoading(true);
+
     try {
-      const res = await sendMessage(activeChatId, text); // { reply, chatId }
+      const res = await sendMessage(activeChatId, text,setLoading,setMessageStream);// { reply, chatId }
+
+
       // refresh the active chat from server to get both messages
       const refreshed = await getChat(activeChatId);
       setActiveChat(refreshed.chat);
@@ -137,7 +141,7 @@ export default function App() {
               {activeChat.messages.map((msg, idx) => (
                 <ChatMessage key={idx} message={msg.text} isUser={msg.isUser} />
               ))}
-              {loading && <ChatMessage message="Typing..." isUser={false} />}
+              {loading && <ChatMessage message={messageStream} isUser={false} />}
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">
