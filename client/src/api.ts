@@ -1,6 +1,8 @@
 // src/api.ts
 // const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
-const API_BASE = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+//const API_BASE = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+
+const API_BASE = "http://localhost:5000/api";
 
 export async function listChats() {
   const res = await fetch(`${API_BASE}/chats`);
@@ -23,18 +25,46 @@ export async function getChat(chatId: string) {
   return res.json(); // { chat }
 }
 
+
 export async function sendMessage(chatId: string, text: string) {
   const res = await fetch(`${API_BASE}/chats/${chatId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
   });
+
+    if (!res.body) return;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    let currentText = "";
+
+     while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+
+      const lines = chunk.split("\n").filter((line) => line.startsWith("data: "));
+      for (const line of lines) {
+        const token = line.replace("data: ", "").trim();
+        if (token === "[DONE]") break;
+
+        currentText += token;}}
+
+
+        
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Failed to send message");
   }
   return res.json(); // { reply, chatId }
 }
+
+
+
+
 
 export async function deleteChat(chatId: string) {
   const res = await fetch(`${API_BASE}/chats/${chatId}`, {
