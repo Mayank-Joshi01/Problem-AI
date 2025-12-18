@@ -30,8 +30,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [messageStream, setMessageStream] = useState<string>("Typing...");
-  // const messageStream = useRef<string>("Typing...");
+  const [message, setMessage] = useState("");
 
+  // const messageStream = useRef<string>("Typing...");
 
   // Load chat list
   useEffect(() => {
@@ -90,16 +91,12 @@ export default function App() {
     }
   };
 
-
-
     const handleSend = async (text: string) => {
     if (!activeChatId) return;
     setLoading(true);
 
     try {
       const res = await sendMessage(activeChatId, text,setLoading,setMessageStream);// { reply, chatId }
-
-
       // refresh the active chat from server to get both messages
       const refreshed = await getChat(activeChatId);
       setActiveChat(refreshed.chat);
@@ -141,7 +138,9 @@ export default function App() {
               {activeChat.messages.map((msg, idx) => (
                 <ChatMessage key={idx} message={msg.text} isUser={msg.isUser} />
               ))}
-              {loading && <ChatMessage message={messageStream} isUser={false} />}
+              {loading && <>
+              <ChatMessage message={message} isUser={true} />
+              <ChatMessage message={messageStream} isUser={false} /></>}
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">
@@ -149,7 +148,7 @@ export default function App() {
             </div>
           )}
         </div>
-        {activeChat && <ChatInput onSend={handleSend} />}
+        {activeChat && <ChatInput onSend={handleSend} message={message} setMessage={setMessage} />}
 
       </div>
     </div>

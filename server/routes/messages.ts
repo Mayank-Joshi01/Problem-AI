@@ -4,8 +4,8 @@ import { Chat } from "../models/Chat.js";
 const router = Router();
 
 router.post("/:id/messages", async (req, res) => {
-  const Ollama_API = `http://localhost:11434/api/chat`;
-  //const Ollama_API = "http://192.168.29.241:11434/api/chat";
+  // const Ollama_API = `http://localhost:11434/api/chat`;
+  const Ollama_API = "http://192.168.29.241:11434/api/chat";
   const chatId = req.params.id;
   const { text } = req.body;
 

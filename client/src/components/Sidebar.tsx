@@ -1,5 +1,6 @@
 // src/components/Sidebar.tsx
 import React from "react";
+import { useState } from "react";
 
 interface ChatSummary {
   id: string;
@@ -22,9 +23,45 @@ export default function Sidebar({
   onNewChat,
   onDeleteChat,
 }: SidebarProps) {
+
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="w-64 bg-[#202123] flex flex-col p-3">
-       <h1 className="text-lg font-bold text-white mb-[25px]"><img src="/Logo.png" alt="" width={30}/></h1>
+    <>
+     {/* Toggle Button (Mobile Only) */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed top-3 left-5 z-50 bg-[#202123] text-white px-3 py-1 rounded-md"
+      >
+        ☰
+      </button>
+
+      {/* Overlay (Mobile Only) */}
+      {isOpen && (
+  <div
+    onClick={() => setIsOpen(false)}
+    className="
+      md:hidden
+      fixed inset-0 z-40
+      bg-black/20
+      backdrop-blur-md
+      backdrop-saturate-150
+    "
+  />
+)}
+
+      {/* Sidebar */}
+
+    <div className={`
+          fixed md:static top-0 left-0 z-50
+          h-full w-64
+          bg-[#202123]
+          flex flex-col p-3
+          transform transition-transform duration-300
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+        `}>
+      <h1 className="text-lg font-bold text-white mb-[25px]"><img src="/Logo.png" alt="" width={30} /></h1>
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={onNewChat}
@@ -42,11 +79,10 @@ export default function Sidebar({
             <div key={chat.id} className="flex items-center mb-2">
               <button
                 onClick={() => onSelectChat(chat.id)}
-                className={`flex-1 text-left py-2 px-3 rounded-md text-sm truncate ${
-                  activeChatId === chat.id
+                className={`flex-1 text-left py-2 px-3 rounded-md text-sm truncate ${activeChatId === chat.id
                     ? "bg-[#343541] text-white"
                     : "text-gray-300 hover:bg-[#2a2b32]"
-                }`}
+                  }`}
               >
                 {chat.title}
               </button>
@@ -62,5 +98,6 @@ export default function Sidebar({
         )}
       </div>
     </div>
+    </>
   );
 }

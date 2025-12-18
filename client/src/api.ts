@@ -43,6 +43,7 @@ export async function sendMessage(chatId: string, text: string,setLoading: (load
      while (true) {
       const{ done, value } = await reader.read();
       if (done) break;
+      /// The value is just simple text no need to parse JSON here
       const lines = value.split("\n").filter((line) => line.startsWith("data: "));
       for (const line of lines) {
         const token = line.replace("data: ", " ");
