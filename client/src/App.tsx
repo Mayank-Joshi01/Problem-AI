@@ -3,6 +3,9 @@ import Sidebar from "./components/Sidebar";
 import ChatMessage from "./components/ChatMessage";
 import ChatInput from "./components/ChatInput";
 import Header from "./components/Header";
+import { useTextSelection } from "./components/useTextSelection";
+import { TranslateMenu } from "./components/TranslateMenu";
+import { TranslationPopup } from "./components/TranslationPopup";
 import { listChats, createChat, getChat, sendMessage, deleteChat } from "./api";
 
 interface Message {
@@ -31,6 +34,30 @@ export default function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [messageStream, setMessageStream] = useState<string>("Typing...");
   const [message, setMessage] = useState("");
+  const { selectedText, position, visible, setVisible } = useTextSelection();
+  const [translation, setTranslation] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+
+
+  async function translateText(text: string) {
+  const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+      text
+    )}&langpair=en|hi`
+  );
+
+  const data = await res.json();
+  console.log("Translation API response:", data);
+  return data.matches[0]?.translation || "Translation not found";
+}
+
+    const handleTranslate = async () => {
+      console.log("Translating text:", selectedText);
+    setVisible(false);
+    const translated = await translateText(selectedText);
+    console.log("Translated text:", translated);
+    setTranslation(`${translated} , translation 2 , translation 3`);
+    setShowPopup(true);
+  };
 
   // const messageStream = useRef<string>("Typing...");
 
@@ -151,6 +178,21 @@ export default function App() {
         {activeChat && <ChatInput onSend={handleSend} message={message} setMessage={setMessage} />}
 
       </div>
+       {visible && (
+        <TranslateMenu
+          x={position.x}
+          y={position.y}
+          onTranslate={handleTranslate}
+        />
+      )}
+
+      {showPopup && (
+        <TranslationPopup
+          original={selectedText}
+          translated={translation}
+          onClose={() => setShowPopup(false)}
+        />
+      )}
     </div>
   );
 }
