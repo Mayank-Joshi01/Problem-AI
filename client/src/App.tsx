@@ -7,6 +7,7 @@ import { useTextSelection } from "./components/useTextSelection";
 import { TranslateMenu } from "./components/TranslateMenu";
 import { TranslationPopup } from "./components/TranslationPopup";
 import { listChats, createChat, getChat, sendMessage, deleteChat } from "./api";
+import ThemeToggle from "./components/ThemeToggle";
 
 interface Message {
   text: string;
@@ -159,22 +160,43 @@ export default function App() {
       />
       <div className="flex flex-col flex-1 bg-[#343541]">
         <Header/>
-        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {activeChat ? (
-            <>
-              {activeChat.messages.map((msg, idx) => (
-                <ChatMessage key={idx} message={msg.text} isUser={msg.isUser} />
-              ))}
-              {loading && <>
-              <ChatMessage message={message} isUser={true} />
-              <ChatMessage message={messageStream} isUser={false} /></>}
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-400">
-              Select or start a chat
-            </div>
-          )}
-        </div>
+        <ThemeToggle />
+       <div
+    className="
+      flex-1 overflow-y-auto
+      px-4 pb-6
+
+      [&::-webkit-scrollbar]:hidden
+      [-ms-overflow-style:none]
+      [scrollbar-width:none]
+      bg-white dark:bg-[#212121]
+    "
+  >
+    {activeChat ? (
+      <>
+        {activeChat.messages.map((msg, idx) => (
+          <ChatMessage
+            key={idx}
+            message={msg.text}
+            isUser={msg.isUser}
+          />
+        ))}
+
+        {loading && (
+          <>
+            <ChatMessage message={message} isUser={true} />
+            <ChatMessage message={messageStream} isUser={false} />
+          </>
+        )}
+      </>
+    ) : (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-400 dark:text-gray-500 text-sm">
+          Select or start a chat
+        </p>
+      </div>
+    )}
+  </div>
         {activeChat && <ChatInput onSend={handleSend} message={message} setMessage={setMessage} />}
 
       </div>
