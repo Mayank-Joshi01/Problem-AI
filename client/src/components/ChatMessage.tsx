@@ -45,6 +45,10 @@ export default function ChatMessage({ message, isUser }: ChatMessageProps) {
       {message}
     </div>
   </div>
+  {/* { !isUser && <div>
+    <span>⧉</span>
+    <span>🎤</span>
+  </div>} */}
 </div>
 
   );

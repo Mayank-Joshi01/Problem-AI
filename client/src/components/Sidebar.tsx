@@ -95,7 +95,6 @@ export default function Sidebar({
     >
       + New Chat
     </button>
-
     {/* Chat List */}
     <div className="flex-1 
     space-y-2
@@ -103,7 +102,7 @@ export default function Sidebar({
       [&::-webkit-scrollbar]:hidden
       [-ms-overflow-style:none]
       [scrollbar-width:none]
-    ">
+    "> <div>Your Chats</div>
       {chats.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No chats yet

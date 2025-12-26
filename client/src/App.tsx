@@ -3,11 +3,12 @@ import Sidebar from "./components/Sidebar";
 import ChatMessage from "./components/ChatMessage";
 import ChatInput from "./components/ChatInput";
 import Header from "./components/Header";
-import { useTextSelection } from "./components/useTextSelection";
-import { TranslateMenu } from "./components/TranslateMenu";
+import { useTextSelection } from "./components/Hooks/useTextSelection";
+import { ContextMenu } from "./components/ContextMenu/ContextMenu";
 import { TranslationPopup } from "./components/TranslationPopup";
 import { listChats, createChat, getChat, sendMessage, deleteChat } from "./api";
 import ThemeToggle from "./components/ThemeToggle";
+import QuickSearchPanel from "./components/QuickSearchPanel";
 
 interface Message {
   text: string;
@@ -35,30 +36,11 @@ export default function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [messageStream, setMessageStream] = useState<string>("Typing...");
   const [message, setMessage] = useState("");
-  const { selectedText, position, visible, setVisible } = useTextSelection();
-  const [translation, setTranslation] = useState("");
+  const { selectedText, position, visible, setVisible ,contextMenuRef, copyToClipboard} = useTextSelection();
   const [showPopup, setShowPopup] = useState(false);
+  const [isQuickOpen, setIsQuickOpen] = useState(false);
+  const quickSearchRef = useRef<any>(null);
 
-
-  async function translateText(text: string) {
-  const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-      text
-    )}&langpair=en|hi`
-  );
-
-  const data = await res.json();
-  console.log("Translation API response:", data);
-  return data.matches[0]?.translation || "Translation not found";
-}
-
-    const handleTranslate = async () => {
-      console.log("Translating text:", selectedText);
-    setVisible(false);
-    const translated = await translateText(selectedText);
-    console.log("Translated text:", translated);
-    setTranslation(`${translated} , translation 2 , translation 3`);
-    setShowPopup(true);
-  };
 
   // const messageStream = useRef<string>("Typing...");
 
@@ -119,12 +101,12 @@ export default function App() {
     }
   };
 
-    const handleSend = async (text: string) => {
+  const handleSend = async (text: string) => {
     if (!activeChatId) return;
     setLoading(true);
 
     try {
-      const res = await sendMessage(activeChatId, text,setLoading,setMessageStream);// { reply, chatId }
+      const res = await sendMessage(activeChatId, text, setLoading, setMessageStream);// { reply, chatId }
       // refresh the active chat from server to get both messages
       const refreshed = await getChat(activeChatId);
       setActiveChat(refreshed.chat);
@@ -136,12 +118,12 @@ export default function App() {
       setActiveChat((prev) =>
         prev
           ? {
-              ...prev,
-              messages: [
-                ...prev.messages,
-                { text: "⚠️ Error sending message", isUser: false },
-              ],
-            }
+            ...prev,
+            messages: [
+              ...prev.messages,
+              { text: "⚠️ Error sending message", isUser: false },
+            ],
+          }
           : prev
       );
     } finally {
@@ -159,10 +141,17 @@ export default function App() {
         onDeleteChat={handleDeleteChat}
       />
       <div className="flex flex-col flex-1 bg-[#343541]">
-        <Header/>
+        <Header />
         <ThemeToggle />
-       <div
-    className="
+
+        <QuickSearchPanel
+          isOpen={isQuickOpen}
+          setIsOpen={setIsQuickOpen}
+          headerHeight={50}
+          ref={quickSearchRef}
+        />
+        <div
+          className="
       flex-1 overflow-y-auto
       px-4 pb-6
 
@@ -171,48 +160,50 @@ export default function App() {
       [scrollbar-width:none]
       bg-white dark:bg-[#212121]
     "
-  >
-    {activeChat ? (
-      <>
-        {activeChat.messages.map((msg, idx) => (
-          <ChatMessage
-            key={idx}
-            message={msg.text}
-            isUser={msg.isUser}
-          />
-        ))}
+        >
+          {activeChat ? (
+            <>
+              {activeChat.messages.map((msg, idx) => (
+                <ChatMessage
+                  key={idx}
+                  message={msg.text}
+                  isUser={msg.isUser}
+                />
+              ))}
 
-        {loading && (
-          <>
-            <ChatMessage message={message} isUser={true} />
-            <ChatMessage message={messageStream} isUser={false} />
-          </>
-        )}
-      </>
-    ) : (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-400 dark:text-gray-500 text-sm">
-          Select or start a chat
-        </p>
-      </div>
-    )}
-  </div>
+              {loading && (
+                <>
+                  <ChatMessage message={message} isUser={true} />
+                  <ChatMessage message={messageStream} isUser={false} />
+                </>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-400 dark:text-gray-500 text-sm">
+                Select or start a chat
+              </p>
+            </div>
+          )}
+        </div>
         {activeChat && <ChatInput onSend={handleSend} message={message} setMessage={setMessage} />}
 
       </div>
-       {visible && (
-        <TranslateMenu
+      {visible && (
+        <ContextMenu
           x={position.x}
           y={position.y}
-          onTranslate={handleTranslate}
+          onTranslate={()=>{setShowPopup(true);setVisible(false); }}
+          onSearch={() => {setIsQuickOpen(true); setVisible(false);quickSearchRef.current.handleQuickSearch(selectedText);}}
+          onCopy={(parent) => copyToClipboard(selectedText, parent,setVisible)}
+          ref={contextMenuRef}
         />
       )}
 
       {showPopup && (
         <TranslationPopup
           original={selectedText}
-          translated={translation}
-          onClose={() => setShowPopup(false)}
+          setShowPopup={setShowPopup}
         />
       )}
     </div>
