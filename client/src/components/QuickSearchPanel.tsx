@@ -91,7 +91,7 @@ try {
 
     bg-white text-gray-900
     dark:bg-[#202123] dark:text-gray-100
-
+    hidden md:block
     border-l border-gray-200
     dark:border-[#444654]
 
@@ -141,7 +141,9 @@ try {
       [&::-webkit-scrollbar]:hidden
       [-ms-overflow-style:none]
       [scrollbar-width:none]
-      max-h-[calc(100vh-156px)] ">
+      h-[calc(100vh-156px)] ">
+        {QuickChats.length===0 && <div className="p-3 text-sm text-gray-500 dark:text-gray-400 h-[100%] flex items-center justify-center"><p>No recent searches</p></div>}
+  {/* Chat List */}
 {QuickChats.length>0 && <ul> 
     {QuickChats.map((chat)=>(
       <li key={chat.id} className="p-2 border-b border-gray-200 dark:border-[#444654] hover:bg-gray-100 dark:hover:bg-[#343541] cursor-pointer">

@@ -25,8 +25,11 @@ export function ContextMenu({ x, y, onTranslate, onSearch, onCopy, ref }: Props)
   "
 >
     <Buttons onClick={onTranslate} InnerText={["🌐", "Translate"]} />
+      <span className="hidden md:inline">
     <Buttons onClick={onSearch} InnerText={["🔎", "Search"]} />
+    </span>
     <Buttons onClick={(e) => onCopy(e.currentTarget.parentElement as HTMLElement)} InnerText={["⧉", "Copy"]} />
+      
 </div>
 
   );

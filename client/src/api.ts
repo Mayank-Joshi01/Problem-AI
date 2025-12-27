@@ -46,7 +46,7 @@ export async function sendMessage(chatId: string, text: string,setLoading: (load
       /// The value is just simple text no need to parse JSON here
       const lines = value.split("\n").filter((line) => line.startsWith("data: "));
       for (const line of lines) {
-        const token = line.replace("data: ", " ");
+        const token = line.replace("data: ", "");
         if (token === "[DONE]") break;
         currentText += token;
         setMessageStream(currentText);}}    

@@ -139,6 +139,10 @@ export default function App() {
         onSelectChat={setActiveChatId}
         onNewChat={handleNewChat}
         onDeleteChat={handleDeleteChat}
+        projects={[]}
+        activeProjectId={null}
+        onSelectProject={()=>{}}
+        
       />
       <div className="flex flex-col flex-1 bg-[#343541]">
         <Header />
